@@ -176,4 +176,11 @@ This launches a web console where you can call all tools and inspect their outpu
 - **Access Denied**:
   The server validates that all files are inside the `workspace_dir`. If you attempt to access an absolute path outside this workspace, it will raise a security exception. Ensure your files are within the configured workspace.
 
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
 
