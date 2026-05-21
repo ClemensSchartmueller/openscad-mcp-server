@@ -2,6 +2,9 @@
 
 A local Model Context Protocol (MCP) server written in Python using FastMCP. This server enables LLM assistants (such as Gemini, Claude, and VS Code Copilot) to interact directly with a local installation of OpenSCAD to write, inspect, edit, validate, and render parametric 3D models.
 
+> [!WARNING]
+> This project is mostly AI-generated. Implementations should be taken with a grain of salt, but Pull Requests (PRs) are welcome!
+
 ```
                   ┌──────────────────────┐
                   │      AI Assistant    │
