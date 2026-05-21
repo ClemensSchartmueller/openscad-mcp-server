@@ -175,3 +175,28 @@ This launches a web console where you can call all tools and inspect their outpu
   Ensure that you specify `OPENSCAD_PATH` in your `.env` or client configuration pointing to `openscad.com` (on Windows, use `openscad.com` rather than `openscad.exe` as it redirects console output properly).
 - **Access Denied**:
   The server validates that all files are inside the `workspace_dir`. If you attempt to access an absolute path outside this workspace, it will raise a security exception. Ensure your files are within the configured workspace.
+
+---
+
+## Projects in Workspace
+
+### BMW i4 (G20/G23/G26) Cupholder Storage Bin (`openscad_projects/bmw_cupholder_insert.scad`)
+
+A parametric center console storage bin designed to fit modern BMW center consoles (G20/G22/G23/G26/i4) using part number `51166809803` as base geometry. It is optimized to serve as a storage bin for chewing gum, keys, or coins.
+
+#### Features:
+* **Hinged Lid**: Opens fully (up to 180 degrees) using a standard M3 screw/bolt (10mm to 16mm length) as a hinge pin.
+* **Finger Hole**: Includes a flush, chamfered finger hole in the lid for quick opening.
+* **Support-Free Printability**: Designed with 45-degree chamfers and self-supporting bridges so both parts print cleanly without supports.
+* **Parametric Layout**: Adjust height, taper, wall thickness, or select 1 or 2 compartments.
+
+#### Output STLs:
+* `openscad_projects/bmw_cupholder_bin.stl` — The main storage cup container.
+* `openscad_projects/bmw_cupholder_lid.stl` — The flat hinge lid.
+
+#### Print Settings (ASA/PETG):
+* **Layer Height**: 0.2mm
+* **Wall Loops/Perimeters**: 4 or 5 (to match the 2.0mm wall thickness exactly)
+* **Supports**: None (ensure parts are oriented flat on the build plate)
+* **Bed Adhesion**: Use a brim for the bin if printing in ASA to prevent warping of the circular base.
+
