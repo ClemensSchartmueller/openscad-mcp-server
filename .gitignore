@@ -144,3 +144,5 @@ workspace/
 temp_*.png
 temp_*.stl
 temp_*.3mf
+openscad_projects/
+
