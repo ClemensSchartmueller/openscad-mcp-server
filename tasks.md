@@ -1,0 +1,34 @@
+# OpenSCAD MCP Server — Tasks
+
+- [x] Repository Setup and Environment Preparation
+    - [x] Create `c:\dev\openscad-mcp-server` directory
+    - [x] Initialize git repository
+    - [x] Add `.gitignore` for Python project
+    - [x] Create `requirements.txt` with `mcp[cli]` (or `fastmcp`), `pytest`, and python-dotenv
+    - [x] Initialize Python virtual environment `.venv` and install dependencies
+- [x] Implement Configuration Module
+    - [x] Create `config.py` with default paths, environment variable support, and global settings variables that can be modified at runtime
+    - [x] Create `.env.example`
+- [x] Implement OpenSCAD Subprocess Runner
+    - [x] Create `openscad_runner.py`
+    - [x] Write `build_command` handling `-D` variables (numbers, booleans, strings, arrays) and camera/colorscheme preview options
+    - [x] Write `run_openscad` handling timeouts, exit status, and robust stderr parsing (ERROR vs. ECHO)
+- [x] Implement SCAD Parameter Parser
+    - [x] Create `scad_parser.py`
+    - [x] Write logic to extract comments formatting (`// [min:max]`, etc.) and variable declarations
+- [x] Implement MCP Server Entry Point
+    - [x] Create `server.py` using FastMCP
+    - [x] Implement `configure_server` tool to get or set `openscad_path` and `workspace_dir`
+    - [x] Implement `create_scad`, `edit_scad`, `list_models`
+    - [x] Implement `validate_scad`
+    - [x] Implement `render_stl`, `render_preview`, `export_model`, `batch_export`
+- [x] Implement Unit & Integration Tests
+    - [x] Create `tests/test_runner.py`
+    - [x] Create `tests/test_parser.py`
+    - [x] Create `tests/test_server.py` using FastMCP test client
+    - [x] Run pytest to verify all tests pass
+- [x] Documentation and Final Verification
+    - [x] Write comprehensive `README.md`
+    - [x] Verify using the MCP Inspector tool (`npx @modelcontextprotocol/inspector`)
+    - [x] Configure server in Gemini CLI and do a real test
+    - [x] Walkthrough documentation creation
