@@ -1,16 +1,33 @@
 import os
+import shutil
+import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env if present
 load_dotenv()
 
+WINDOWS_DEFAULT_OPENSCAD_PATH = r"C:\Program Files\OpenSCAD\openscad.com"
+MACOS_APP_OPENSCAD_PATH = "/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD"
+
+
+def default_openscad_path() -> str:
+    """Return a sensible default OpenSCAD executable path for the current platform."""
+    if sys.platform == "win32":
+        return WINDOWS_DEFAULT_OPENSCAD_PATH
+    found = shutil.which("openscad")
+    if found:
+        return found
+    if sys.platform == "darwin" and os.path.exists(MACOS_APP_OPENSCAD_PATH):
+        return MACOS_APP_OPENSCAD_PATH
+    # Fall back to the bare command name; the runner reports a clear
+    # "executable not found" error if it is not resolvable at run time.
+    return "openscad"
+
+
 class Config:
     def __init__(self):
-        # Default OpenSCAD path on Windows
-        self._openscad_path = os.environ.get(
-            "OPENSCAD_PATH", 
-            r"C:\Program Files\OpenSCAD\openscad.com"
-        )
+        # OPENSCAD_PATH overrides the per-platform default (an empty value is ignored)
+        self._openscad_path = os.environ.get("OPENSCAD_PATH") or default_openscad_path()
         
         # Default workspace directory in user's home directory
         default_workspace = os.path.join(os.path.expanduser("~"), "openscad-workspace")

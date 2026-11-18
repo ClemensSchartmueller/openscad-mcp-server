@@ -41,7 +41,7 @@ A local Model Context Protocol (MCP) server written in Python using FastMCP. Thi
 - **Python 3.10+**
 - **OpenSCAD (2021.01 or newer)**
   - *Windows*: Ensure OpenSCAD is installed (typically at `C:\Program Files\OpenSCAD\openscad.com`).
-  - *macOS/Linux*: Ensure `openscad` is installed and on your system `PATH`.
+  - *macOS/Linux*: Ensure `openscad` is installed and on your system `PATH` (on macOS, `/Applications/OpenSCAD.app` is also detected).
 
 ---
 

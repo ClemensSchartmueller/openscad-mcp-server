@@ -285,7 +285,7 @@ def validate_scad(
         return f"Validation failed:\n{errors_str}"
 
 
-@mcp.tool()
+@mcp.tool(structured_output=False)
 def render_preview(
     filepath: str,
     width: int = 800,
