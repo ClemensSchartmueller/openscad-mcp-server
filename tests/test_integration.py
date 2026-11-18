@@ -1,13 +1,17 @@
 import os
+import shutil
 import pytest
 from config import config
 import server
 
 # Check if OpenSCAD is installed to decide if we run integration tests
-openscad_installed = os.path.exists(config.openscad_path)
+openscad_installed = os.path.exists(config.openscad_path) or shutil.which(config.openscad_path) is not None
 
 @pytest.mark.skipif(not openscad_installed, reason="OpenSCAD not installed")
-def test_live_integration():
+def test_live_integration(tmp_path, monkeypatch):
+    # Keep the live run out of the user's real workspace
+    monkeypatch.setattr(config, "workspace_dir", str(tmp_path))
+
     # 1. Create a test scad file
     res_create = server.create_scad("smoke_test.scad", "cube(15);")
     assert "Successfully created" in res_create

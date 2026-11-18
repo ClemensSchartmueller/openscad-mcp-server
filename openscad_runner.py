@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import logging
 from typing import Dict, Any, List, Optional
@@ -132,6 +133,18 @@ def parse_stderr_errors(stderr: str) -> List[str]:
     return errors
 
 
+def _to_text(value: Any) -> str:
+    """Normalize captured process output to str.
+
+    subprocess.TimeoutExpired always carries bytes (or None), even with text=True.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
+
+
 def run_openscad(
     cmd: List[str],
     timeout: int = 120,
@@ -148,17 +161,17 @@ def run_openscad(
     """
     # Verify the executable exists
     openscad_bin = cmd[0]
-    if not os.path.exists(openscad_bin) and not os.path.isabs(openscad_bin):
-        # If it's a relative/command name, check if it's on PATH
-        from shutil import which
-        if not which(openscad_bin):
-            return OpenSCADRunnerResult(
-                success=False,
-                returncode=-1,
-                stdout="",
-                stderr=f"OpenSCAD executable not found: {openscad_bin}",
-                errors=[f"OpenSCAD executable not found: {openscad_bin}"]
-            )
+    # Accept an existing file path or a command name resolvable on PATH.
+    # A missing absolute path is reported here too instead of surfacing later
+    # as a generic FileNotFoundError from subprocess.
+    if not os.path.exists(openscad_bin) and not shutil.which(openscad_bin):
+        return OpenSCADRunnerResult(
+            success=False,
+            returncode=-1,
+            stdout="",
+            stderr=f"OpenSCAD executable not found: {openscad_bin}",
+            errors=[f"OpenSCAD executable not found: {openscad_bin}"]
+        )
 
     # Set up environment variables (like OPENSCADPATH)
     env = os.environ.copy()
@@ -222,8 +235,8 @@ def run_openscad(
         return OpenSCADRunnerResult(
             success=False,
             returncode=-2,
-            stdout=e.stdout or "",
-            stderr=e.stderr or f"Process timed out after {timeout} seconds.",
+            stdout=_to_text(e.stdout),
+            stderr=_to_text(e.stderr) or f"Process timed out after {timeout} seconds.",
             errors=[f"Execution timed out after {timeout} seconds."]
         )
     except Exception as e:

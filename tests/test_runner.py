@@ -4,6 +4,16 @@ import pytest
 from unittest.mock import patch, MagicMock
 from openscad_runner import to_scad_value, build_command, parse_stderr_errors, run_openscad
 
+
+@pytest.fixture
+def fake_openscad(tmp_path):
+    """Create a stand-in OpenSCAD executable so the runner's existence check
+    passes on every platform. subprocess.run is mocked, so it is never executed."""
+    exe = tmp_path / "openscad.com"
+    exe.write_text("")
+    exe.chmod(0o755)
+    return str(exe)
+
 def test_to_scad_value():
     assert to_scad_value(True) == "true"
     assert to_scad_value(False) == "false"
@@ -73,7 +83,7 @@ def test_parse_stderr_errors():
 
 
 @patch("subprocess.run")
-def test_run_openscad_success(mock_run):
+def test_run_openscad_success(mock_run, fake_openscad):
     # Setup mock process response
     mock_process = MagicMock()
     mock_process.returncode = 0
@@ -81,7 +91,7 @@ def test_run_openscad_success(mock_run):
     mock_process.stderr = "Compiling design...\nECHO: \"Volume: 10\""
     mock_run.return_value = mock_process
     
-    cmd = [r"C:\Program Files\OpenSCAD\openscad.com", "model.scad"]
+    cmd = [fake_openscad, "model.scad"]
     result = run_openscad(cmd)
     
     assert result.success is True
@@ -91,7 +101,7 @@ def test_run_openscad_success(mock_run):
 
 
 @patch("subprocess.run")
-def test_run_openscad_null_device(mock_run):
+def test_run_openscad_null_device(mock_run, fake_openscad):
     # Setup mock process response
     mock_process = MagicMock()
     mock_process.returncode = 0
@@ -99,7 +109,7 @@ def test_run_openscad_null_device(mock_run):
     mock_process.stderr = "Compiling design...\n"
     mock_run.return_value = mock_process
     
-    cmd = [r"C:\Program Files\OpenSCAD\openscad.com", "model.scad"]
+    cmd = [fake_openscad, "model.scad"]
     result = run_openscad(cmd, output_path="NUL")
     
     assert result.success is True
@@ -108,14 +118,14 @@ def test_run_openscad_null_device(mock_run):
 
 
 @patch("subprocess.run")
-def test_run_openscad_compilation_error(mock_run):
+def test_run_openscad_compilation_error(mock_run, fake_openscad):
     mock_process = MagicMock()
     mock_process.returncode = 0  # Sometimes exit code is 0 on compilation error
     mock_process.stdout = ""
     mock_process.stderr = "Compiling design...\nERROR: Syntax error in line 4\nParsing design failed!"
     mock_run.return_value = mock_process
     
-    cmd = [r"C:\Program Files\OpenSCAD\openscad.com", "model.scad"]
+    cmd = [fake_openscad, "model.scad"]
     result = run_openscad(cmd)
     
     assert result.success is False
@@ -124,8 +134,8 @@ def test_run_openscad_compilation_error(mock_run):
 
 
 @patch("subprocess.run")
-def test_run_openscad_timeout(mock_run):
-    cmd = [r"C:\Program Files\OpenSCAD\openscad.com", "model.scad"]
+def test_run_openscad_timeout(mock_run, fake_openscad):
+    cmd = [fake_openscad, "model.scad"]
     mock_run.side_effect = subprocess.TimeoutExpired(cmd=cmd, timeout=10, output="out", stderr=None)
     
     result = run_openscad(cmd, timeout=10)
@@ -137,7 +147,7 @@ def test_run_openscad_timeout(mock_run):
 
 @patch("subprocess.run")
 @patch("os.environ.copy")
-def test_run_openscad_library_paths(mock_env_copy, mock_run):
+def test_run_openscad_library_paths(mock_env_copy, mock_run, fake_openscad):
     mock_env = {"PATH": "/usr/bin"}
     mock_env_copy.return_value = mock_env
     
@@ -145,7 +155,7 @@ def test_run_openscad_library_paths(mock_env_copy, mock_run):
     mock_process.returncode = 0
     mock_run.return_value = mock_process
     
-    cmd = [r"C:\Program Files\OpenSCAD\openscad.com", "model.scad"]
+    cmd = [fake_openscad, "model.scad"]
     run_openscad(cmd, library_paths=["/my/lib1", "/my/lib2"])
     
     # Assert env is set correctly
@@ -153,3 +163,28 @@ def test_run_openscad_library_paths(mock_env_copy, mock_run):
     assert "OPENSCADPATH" in called_env
     assert os.path.abspath("/my/lib1") in called_env["OPENSCADPATH"]
     assert os.path.abspath("/my/lib2") in called_env["OPENSCADPATH"]
+
+
+@patch("subprocess.run")
+def test_run_openscad_timeout_bytes_output(mock_run, fake_openscad):
+    # subprocess.TimeoutExpired carries bytes even when text=True was requested
+    cmd = [fake_openscad, "model.scad"]
+    mock_run.side_effect = subprocess.TimeoutExpired(cmd=cmd, timeout=10, output=b"partial", stderr=b"ERROR: slow")
+
+    result = run_openscad(cmd, timeout=10)
+
+    assert result.success is False
+    assert result.returncode == -2
+    assert result.stdout == "partial"
+    assert result.stderr == "ERROR: slow"
+
+
+@patch("subprocess.run")
+def test_run_openscad_missing_executable(mock_run, tmp_path):
+    missing = str(tmp_path / "does-not-exist" / "openscad")
+    result = run_openscad([missing, "model.scad"])
+
+    assert result.success is False
+    assert result.returncode == -1
+    assert f"OpenSCAD executable not found: {missing}" in result.errors
+    mock_run.assert_not_called()
